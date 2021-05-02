@@ -31,7 +31,7 @@ mybatis.mapper.reload.mapper-location=classpath*:/**/*apper*.xml
 <dependency>
   <groupId>com.github.WangJi92</groupId>
     <artifactId>mybatis-mapper-reload-sping-boot-start</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 ### 2.2 arthas 如何热更新
