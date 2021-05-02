@@ -40,6 +40,7 @@ public class MybatisMapperXmlFileReloadService {
     /**
      * 重新 加载mapper xml  【这里可以使用arthas 进行调用远程增强】
      * eg  ognl -x 3 '#springContext=@com.wangji92.arthas.plugin.demo.common.ApplicationContextProvider@context,#springContext.getBean("mybatisMapperXmlFileReloadService").reloadAllSqlSessionFactoryMapper("/root/xxx.xml")' -c xxx
+     *
      * @param mapperFilePath
      * @return
      */
@@ -60,7 +61,7 @@ public class MybatisMapperXmlFileReloadService {
         // 删除mapper 缓存 重新加载
         sqlSessionFactoryList.parallelStream().forEach(sqlSessionFactory -> {
             Configuration configuration = sqlSessionFactory.getConfiguration();
-            if (!removeMapperCacheAndReloadNewMapperFile(path, configuration)) {
+            if (!this.removeMapperCacheAndReloadNewMapperFile(path, configuration)) {
                 log.warn("reload new mapper file fail {}", path.toString());
                 result.set(false);
             }
@@ -93,8 +94,8 @@ public class MybatisMapperXmlFileReloadService {
             if (namespace == null || namespace.isEmpty()) {
                 throw new BuilderException("Mapper's namespace cannot be empty");
             }
-            removeOldMapperFileConfigCache(configuration, contextNode, namespace);
 
+            this.removeOldMapperFileConfigCache(configuration, contextNode, namespace);
             this.addNewMapperFile(configuration, watchPath, namespace);
             return true;
         } catch (Exception e) {

@@ -11,17 +11,51 @@
     <groupId>com.github.WangJi92</groupId>
     <artifactId>mmybatis-mapper-reload-sping-boot-start</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>mybatis-mapper-reload-sping-boot-start</name>
-    <description>mybatis-mapper-reload-sping-boot-start</description>
+    <name>mybatis-mapper-reload-spring-boot-start</name>
+    <description>热更新 mybatis mapper xml spring boot start</description>
+    <url>https://github.com/WangJi92/mybatis-mapper-reload-spring-boot-start</url>
     <properties>
         <java.version>1.8</java.version>
+        <directory-watcher-version>0.15.0</directory-watcher-version>
     </properties>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/WangJi92/mybatis-mapper-reload-spring-boot-start</url>
+        <connection>https://github.com/WangJi92/mybatis-mapper-reload-spring-boot-start.git</connection>
+        <developerConnection>https://github.com/WangJi92/mybatis-mapper-reload-spring-boot-start.git
+        </developerConnection>
+    </scm>
+    <developers>
+        <developer>
+            <name>wangji</name>
+            <email>983433479@qq.com</email>
+            <url>https://github.com/WangJi92/mybatis-mapper-reload-spring-boot-start</url>
+        </developer>
+    </developers>
     <dependencies>
+        <dependency>
+            <groupId>io.methvin</groupId>
+            <artifactId>directory-watcher</artifactId>
+            <version>${directory-watcher-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
-            <scope>provided</scope>
             <version>3.5.6</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -39,17 +73,6 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.30</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.methvin</groupId>
-            <artifactId>directory-watcher</artifactId>
-            <version>0.15.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
