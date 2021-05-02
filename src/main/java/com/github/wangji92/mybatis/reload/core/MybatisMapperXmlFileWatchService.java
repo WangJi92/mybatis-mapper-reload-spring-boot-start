@@ -5,9 +5,11 @@ import io.methvin.watcher.DirectoryWatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -137,17 +139,15 @@ public class MybatisMapperXmlFileWatchService implements DisposableBean {
                 if (!resource.exists()) {
                     continue;
                 }
-                File file = null;
-                try {
-                    file = resource.getFile();
-                } catch (Exception e) {
-                    log.debug("get file error", e);
+                if (ResourceUtils.isFileURL(resource.getURL())) {
+                    File file = resource.getFile();
+                    String parentDir = file.getParent();
+                    parentDirSet.add(Paths.get(parentDir));
+                } else if (ResourceUtils.isJarURL(resource.getURL())) {
+                    // jar 包里面
+                    String parentDir = new UrlResource(ResourceUtils.extractJarFileURL(resource.getURL())).getFile().getParent();
+                    parentDirSet.add(Paths.get(parentDir));
                 }
-                if (file == null) {
-                    continue;
-                }
-                String parentDir = file.getParent();
-                parentDirSet.add(Paths.get(parentDir));
             } catch (Exception e) {
                 log.warn("getWatchMapperXmlFileDirPaths error resource={}", resource, e);
             }
