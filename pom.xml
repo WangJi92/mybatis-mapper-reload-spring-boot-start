@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.github.WangJi92</groupId>
-    <artifactId>mmybatis-mapper-reload-sping-boot-start</artifactId>
+    <artifactId>mybatis-mapper-reload-sping-boot-start</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>mybatis-mapper-reload-spring-boot-start</name>
     <description>热更新 mybatis mapper xml spring boot start</description>

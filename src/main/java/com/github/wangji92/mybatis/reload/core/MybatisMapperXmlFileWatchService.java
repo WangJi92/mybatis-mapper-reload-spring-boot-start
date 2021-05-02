@@ -77,7 +77,7 @@ public class MybatisMapperXmlFileWatchService implements DisposableBean {
             return;
         }
         this.startMapperWatchService(mapperXmlFileDirPaths);
-        log.info("mybatis mapper reload service success");
+        log.info("init mybatis mapper reload service success");
 
     }
 

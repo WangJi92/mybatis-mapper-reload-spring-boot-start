@@ -3,6 +3,7 @@ package com.github.wangji92.mybatis.reload.core;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
+import org.apache.ibatis.builder.xml.XMLMapperEntityResolver;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.parsing.XPathParser;
 import org.apache.ibatis.session.Configuration;
@@ -85,7 +86,7 @@ public class MybatisMapperXmlFileReloadService {
      */
     private boolean removeMapperCacheAndReloadNewMapperFile(Path watchPath, Configuration configuration) {
         try (InputStream fileInputStream = Files.newInputStream(watchPath)) {
-            XPathParser context = new XPathParser(fileInputStream, true);
+            XPathParser context = new XPathParser(fileInputStream, true, configuration.getVariables(), new XMLMapperEntityResolver());
             XNode contextNode = context.evalNode("/mapper");
             if (null == contextNode) {
                 return false;
