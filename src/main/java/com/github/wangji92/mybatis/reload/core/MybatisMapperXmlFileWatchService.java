@@ -5,7 +5,6 @@ import io.methvin.watcher.DirectoryWatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.PatternMatchUtils;
@@ -136,18 +135,19 @@ public class MybatisMapperXmlFileWatchService implements DisposableBean {
         Set<Path> parentDirSet = new HashSet<>(5);
         for (Resource resource : resources) {
             try {
-                if (!resource.exists()) {
+                if (!resource.exists() || ResourceUtils.isJarURL(resource.getURL())) {
                     continue;
                 }
                 if (ResourceUtils.isFileURL(resource.getURL())) {
                     File file = resource.getFile();
                     String parentDir = file.getParent();
                     parentDirSet.add(Paths.get(parentDir));
-                } else if (ResourceUtils.isJarURL(resource.getURL())) {
-                    // jar 包里面
-                    String parentDir = new UrlResource(ResourceUtils.extractJarFileURL(resource.getURL())).getFile().getParent();
-                    parentDirSet.add(Paths.get(parentDir));
                 }
+                // jar 包里面的不需要进行监控了
+//                else if (ResourceUtils.isJarURL(resource.getURL())) {
+//                    String parentDir = new UrlResource(ResourceUtils.extractJarFileURL(resource.getURL())).getFile().getParent();
+//                    parentDirSet.add(Paths.get(parentDir));
+//                }
             } catch (Exception e) {
                 log.warn("getWatchMapperXmlFileDirPaths error resource={}", resource, e);
             }
