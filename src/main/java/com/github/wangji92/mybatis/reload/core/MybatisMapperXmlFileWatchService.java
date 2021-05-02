@@ -9,6 +9,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.PatternMatchUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -106,7 +107,7 @@ public class MybatisMapperXmlFileWatchService implements DisposableBean {
                                 return;
                             }
                             boolean result = mybatisMapperXmlFileReloadService.reloadAllSqlSessionFactoryMapper(fullPath);
-                            log.info("path={} atomicInteger ={} result={}", path, reloadCount.incrementAndGet(), result);
+                            log.info("path={} reload count ={} result={}", path, reloadCount.incrementAndGet(), result);
                         }
                     })
                     .fileHashing(true)
@@ -133,12 +134,21 @@ public class MybatisMapperXmlFileWatchService implements DisposableBean {
         Set<Path> parentDirSet = new HashSet<>(5);
         for (Resource resource : resources) {
             try {
-                if (!resource.isFile()) {
+                if (!resource.exists()) {
                     continue;
                 }
-                String parentDir = resource.getFile().getParent();
+                File file = null;
+                try {
+                    file = resource.getFile();
+                } catch (Exception e) {
+                    log.debug("get file error", e);
+                }
+                if (file == null) {
+                    continue;
+                }
+                String parentDir = file.getParent();
                 parentDirSet.add(Paths.get(parentDir));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.warn("getWatchMapperXmlFileDirPaths error resource={}", resource, e);
             }
         }
