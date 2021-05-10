@@ -1,8 +1,11 @@
 # mybatis-mapper-reload-spring-boot-start
-热更新 mybatis mapper xml
+
+[热更新 mybatis mapper xml 配合arthas-idea-plugin 插件执行热更新](https://www.yuque.com/wangji-yunque/ikhsmq/ctgcbg)
+
 
 ## 1、来源
 arthas 可以支持热更新 mybaits 的mapper ？我认为是可以的，应该是可以支持的。一般来说可以调用spring context 就可以执行任意的spring bean的方法，只需要将mybaits 的热更新程序留个口子即可。因此来研究一下mybatis的热更新如何操作。
+
 ### 1.1 参考文章 
 
 - [Mybatis实现*mapper.xml热部署-分子级更新](https://blog.csdn.net/chao_1990/article/details/85116284)
@@ -47,147 +50,26 @@ hashValue=`$HOME/opt/arthas/as.sh  --select com.wangji92.arthas.plugin.demo.Arth
 $HOME/opt/arthas/as.sh  --select com.wangji92.arthas.plugin.demo.ArthasPluginDemoApplication -c "#springContext=@com.wangji92.arthas.plugin.demo.common.ApplicationContextProvider@context,#springContext.getBean("mybatisMapperXmlFileReloadService").reloadAllSqlSessionFactoryMapper("/root/xxxmapper.xml")' -c $hashValue " | tee text.txt
 ```
 结合上面的shell 脚本 基本上可以流程化处理服务器 mapper xml的热更新。
-### 2.3 实践 watch 获取spring context 进行热更新mapper
-执行arthas watch 
-#### 2.3.1 执行arthas的脚本
-```bash
-watch -x 3 -n 1  org.springframework.web.servlet.DispatcherServlet doDispatch '@org.springframework.web.context.support.WebApplicationContextUtils@getWebApplicationContext(params[0].getServletContext()).getBean("mybatisMapperXmlFileReloadService").reloadAllSqlSessionFactoryMapper("/Users/wangji/Documents/project/mybatis-demo/src/main/resources/com/boot/mybatis/mybatisdemo/mapper/UserDoMapperExt.xml")'
-```
-#### 2.3.2 错误的文件
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-44<mapper namespace="com.boot.mybatis.mybatisdemo.mapper.UserDoMapper">
 
-</mapper>
-```
-#### 2.3.3 执行结果
-##### 2.3.3.1 arthas 
-```bash
-[arthas@85871]$ watch -x 3 -n 1  org.springframework.web.servlet.DispatcherServlet doDispatch '@org.springframework.web.context.support.WebApplicationContextUtils@getWebApplicationContext(params[0].getServletContext()).getBean("mybatisMapperXmlFileReloadService").reloadAllSqlSessionFactoryMapper("/Users/wangji/Documents/project/mybatis-demo/src/main/resources/com/boot/mybatis/mybatisdemo/mapper/UserDoMapperExt.xml")'
-Press Q or Ctrl+C to abort.
-Affect(class count: 1 , method count: 1) cost in 99 ms, listenerId: 2
-method=org.springframework.web.servlet.DispatcherServlet.doDispatch location=AtExit
-ts=2021-05-02 15:16:57; [cost=18.735604ms] result=@Boolean[false]
-Command execution times exceed limit: 1, so command will exit. You can set it with -n option.
-[arthas@85871]$ 
+
+### mapper reload 日志
+command+F9 热更新xml 查询名称 从* 变为 age的 过程
+[https://github.com/WangJi92/mybatis-log-demo](https://github.com/WangJi92/mybatis-log-demo)
 
 ```
-##### 2.3.3.2 应用日志
-```
-2021-05-02 15:16:57.286  WARN 85871 --- [nio-7012-exec-7] .m.r.c.MybatisMapperXmlFileReloadService : load fail /Users/wangji/Documents/project/mybatis-demo/src/main/resources/com/boot/mybatis/mybatisdemo/mapper/UserDoMapperExt.xml
+2021-05-10 22:58:00.048 DEBUG 1190 --- [nio-7012-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/user/findAll", parameters={}
+2021-05-10 22:58:00.058 DEBUG 1190 --- [nio-7012-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to public java.util.List<com.boot.mybatis.mybatisdemo.model.dataobject.UserDo> com.boot.mybatis.mybatisdemo.controller.UserController.findAll()
+2021-05-10 22:58:00.134  INFO 1190 --- [nio-7012-exec-1] s.b.a.MybatisSqlCompletePrintInterceptor : SQL:select * from user WHERE ( name is not null )    执行耗时=9
+2021-05-10 22:58:00.147 DEBUG 1190 --- [nio-7012-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2021-05-10 22:58:00.148 DEBUG 1190 --- [nio-7012-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Writing [[UserDo [Hash = 65438785, name=汪吉, age=27, type=worker], UserDo [Hash = -1080850091, name=wangji1, a (truncated)...]
+2021-05-10 22:58:00.167 DEBUG 1190 --- [nio-7012-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2021-05-10 22:58:13.686  INFO 1190 --- [pper xml reload] .m.r.c.MybatisMapperXmlFileReloadService : reload new mapper file success path=/Users/wangji/Documents/project/mybatis-demo/target/classes/com/boot/mybatis/mybatisdemo/mapper/UserDoMapper.xml
+2021-05-10 22:58:13.686  INFO 1190 --- [pper xml reload] w.m.r.c.MybatisMapperXmlFileWatchService : reload all count =/Users/wangji/Documents/project/mybatis-demo/target/classes/com/boot/mybatis/mybatisdemo/mapper/UserDoMapper.xml current result=2 mapper path=true 
+2021-05-10 22:58:16.357 DEBUG 1190 --- [nio-7012-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/user/findAll", parameters={}
+2021-05-10 22:58:16.361 DEBUG 1190 --- [nio-7012-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to public java.util.List<com.boot.mybatis.mybatisdemo.model.dataobject.UserDo> com.boot.mybatis.mybatisdemo.controller.UserController.findAll()
+2021-05-10 22:58:16.367  INFO 1190 --- [nio-7012-exec-3] s.b.a.MybatisSqlCompletePrintInterceptor : SQL:select age from user WHERE ( name is not null )    执行耗时=4
+2021-05-10 22:58:16.368 DEBUG 1190 --- [nio-7012-exec-3] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/json, application/*+json]
+2021-05-10 22:58:16.368 DEBUG 1190 --- [nio-7012-exec-3] m.m.a.RequestResponseBodyMethodProcessor : Writing [[UserDo [Hash = 30628, name=null, age=27, type=null], UserDo [Hash = 29791, name=null, age=0, type=n (truncated)...]
+2021-05-10 22:58:16.369 DEBUG 1190 --- [nio-7012-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
 
-org.apache.ibatis.builder.BuilderException: Error creating document instance.  Cause: org.xml.sax.SAXParseException; lineNumber: 3; columnNumber: 1; 前言中不允许有内容。
-	at org.apache.ibatis.parsing.XPathParser.createDocument(XPathParser.java:260) ~[mybatis-3.5.2.jar:3.5.2]
-	at org.apache.ibatis.parsing.XPathParser.<init>(XPathParser.java:86) ~[mybatis-3.5.2.jar:3.5.2]
-	at com.github.wangji92.mybatis.reload.core.MybatisMapperXmlFileReloadService.removeMapperCacheAndReloadNewMapperFile(MybatisMapperXmlFileReloadService.java:88) [mmybatis-mapper-reload-sping-boot-start-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
-	at com.github.wangji92.mybatis.reload.core.MybatisMapperXmlFileReloadService.lambda$reloadAllSqlSessionFactoryMapper$0(MybatisMapperXmlFileReloadService.java:64) [mmybatis-mapper-reload-sping-boot-start-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
-	at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184) ~[na:1.8.0_181]
-	at java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1382) ~[na:1.8.0_181]
-	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481) ~[na:1.8.0_181]
-	at java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:291) ~[na:1.8.0_181]
-	at java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:731) ~[na:1.8.0_181]
-	at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289) ~[na:1.8.0_181]
-	at java.util.concurrent.ForkJoinTask.doInvoke(ForkJoinTask.java:401) ~[na:1.8.0_181]
-	at java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:734) ~[na:1.8.0_181]
-	at java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:160) ~[na:1.8.0_181]
-	at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:174) ~[na:1.8.0_181]
-	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233) ~[na:1.8.0_181]
-	at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418) ~[na:1.8.0_181]
-	at java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:583) ~[na:1.8.0_181]
-	at com.github.wangji92.mybatis.reload.core.MybatisMapperXmlFileReloadService.reloadAllSqlSessionFactoryMapper(MybatisMapperXmlFileReloadService.java:62) [mmybatis-mapper-reload-sping-boot-start-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_181]
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_181]
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_181]
-	at java.lang.reflect.Method.invoke(Method.java:498) ~[na:1.8.0_181]
-	at ognl.OgnlRuntime.invokeMethod(OgnlRuntime.java:899) ~[na:na]
-	at ognl.OgnlRuntime.callAppropriateMethod(OgnlRuntime.java:1544) ~[na:na]
-	at ognl.ObjectMethodAccessor.callMethod(ObjectMethodAccessor.java:68) ~[na:na]
-	at ognl.OgnlRuntime.callMethod(OgnlRuntime.java:1620) ~[na:na]
-	at ognl.ASTMethod.getValueBody(ASTMethod.java:91) ~[na:na]
-	at ognl.SimpleNode.evaluateGetValueBody(SimpleNode.java:212) ~[na:na]
-	at ognl.SimpleNode.getValue(SimpleNode.java:258) ~[na:na]
-	at ognl.ASTChain.getValueBody(ASTChain.java:141) ~[na:na]
-	at ognl.SimpleNode.evaluateGetValueBody(SimpleNode.java:212) ~[na:na]
-	at ognl.SimpleNode.getValue(SimpleNode.java:258) ~[na:na]
-	at ognl.Ognl.getValue(Ognl.java:470) ~[na:na]
-	at ognl.Ognl.getValue(Ognl.java:572) ~[na:na]
-	at ognl.Ognl.getValue(Ognl.java:542) ~[na:na]
-	at com.taobao.arthas.core.command.express.OgnlExpress.get(OgnlExpress.java:37) ~[na:na]
-	at com.taobao.arthas.core.advisor.AdviceListenerAdapter.getExpressionResult(AdviceListenerAdapter.java:123) ~[na:na]
-	at com.taobao.arthas.core.command.monitor200.WatchAdviceListener.watching(WatchAdviceListener.java:86) ~[na:na]
-	at com.taobao.arthas.core.command.monitor200.WatchAdviceListener.finishing(WatchAdviceListener.java:70) ~[na:na]
-	at com.taobao.arthas.core.command.monitor200.WatchAdviceListener.afterReturning(WatchAdviceListener.java:54) ~[na:na]
-	at com.taobao.arthas.core.advisor.AdviceListenerAdapter.afterReturning(AdviceListenerAdapter.java:57) ~[na:na]
-	at com.taobao.arthas.core.advisor.SpyImpl.atExit(SpyImpl.java:67) ~[na:na]
-	at java.arthas.SpyAPI.atExit(SpyAPI.java:64) ~[na:3.5.0]
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:32) ~[spring-webmvc-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:942) ~[spring-webmvc-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1005) ~[spring-webmvc-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:897) ~[spring-webmvc-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:634) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:882) ~[spring-webmvc-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:741) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:231) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) ~[tomcat-embed-websocket-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.springframework.boot.actuate.web.trace.servlet.HttpTraceFilter.doFilterInternal(HttpTraceFilter.java:88) ~[spring-boot-actuator-2.1.7.RELEASE.jar:2.1.7.RELEASE]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:118) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:118) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:92) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:118) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:93) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:118) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.filterAndRecordMetrics(WebMvcMetricsFilter.java:114) ~[spring-boot-actuator-2.1.7.RELEASE.jar:2.1.7.RELEASE]
-	at org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.doFilterInternal(WebMvcMetricsFilter.java:104) ~[spring-boot-actuator-2.1.7.RELEASE.jar:2.1.7.RELEASE]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:118) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:200) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:118) ~[spring-web-5.1.9.RELEASE.jar:5.1.9.RELEASE]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:202) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:96) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:490) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:139) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:408) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:66) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:853) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1587) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) ~[na:1.8.0_181]
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) ~[na:1.8.0_181]
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) ~[tomcat-embed-core-9.0.22.jar:9.0.22]
-	at java.lang.Thread.run(Thread.java:748) ~[na:1.8.0_181]
-Caused by: org.xml.sax.SAXParseException: 前言中不允许有内容。
-	at com.sun.org.apache.xerces.internal.util.ErrorHandlerWrapper.createSAXParseException(ErrorHandlerWrapper.java:203) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.util.ErrorHandlerWrapper.fatalError(ErrorHandlerWrapper.java:177) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.impl.XMLErrorReporter.reportError(XMLErrorReporter.java:400) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.impl.XMLErrorReporter.reportError(XMLErrorReporter.java:327) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.impl.XMLScanner.reportFatalError(XMLScanner.java:1472) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:994) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:602) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:505) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:842) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:771) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.parsers.DOMParser.parse(DOMParser.java:243) ~[na:1.8.0_181]
-	at com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl.parse(DocumentBuilderImpl.java:339) ~[na:1.8.0_181]
-	at org.apache.ibatis.parsing.XPathParser.createDocument(XPathParser.java:258) ~[mybatis-3.5.2.jar:3.5.2]
-	... 95 common frames omitted
 ```
