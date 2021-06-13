@@ -10,6 +10,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "mybatis.mapper.reload")
 public class MybatisMapperXmlFileReloadProperties {
+
+    public MybatisMapperXmlFileReloadProperties(boolean enable, String mapperLocation) {
+        this.enable = enable;
+        this.mapperLocation = mapperLocation;
+    }
+
+    public MybatisMapperXmlFileReloadProperties() {
+    }
+
     /**
      * 是否开启
      */

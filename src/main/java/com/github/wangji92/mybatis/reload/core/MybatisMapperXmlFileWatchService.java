@@ -107,7 +107,7 @@ public class MybatisMapperXmlFileWatchService implements DisposableBean {
                                     fullPath)) {
                                 return;
                             }
-                            boolean result = mybatisMapperXmlFileReloadService.reloadAllSqlSessionFactoryMapper(fullPath);
+                            boolean result = mybatisMapperXmlFileReloadService.reloadAllMapperXml(fullPath);
                             log.info("path={} reload count ={} result={}", path, reloadCount.incrementAndGet(), result);
                         }
                     })
