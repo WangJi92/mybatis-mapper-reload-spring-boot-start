@@ -72,6 +72,12 @@ public class MybatisMapperXmlFileReloadService {
     }
 
 
+    /**
+     * 重新加载mapper接口  【这里可以使用arthas 进行调用远程增强】
+     * eg  ognl -x 3 '#springContext=@com.wangji92.arthas.plugin.demo.common.ApplicationContextProvider@context,#springContext.getBean("mybatisMapperXmlFileReloadService").reloadAllSqlSessionFactoryMapper("com.xxx.StudentMapper")' -c xxx
+     * @param namespace  same as mapper full class name
+     * @return
+     */
     public void reloadAllMapperClazz(String namespace) {
         if (CollectionUtils.isEmpty(sqlSessionFactoryList)) {
             return;
